@@ -38,7 +38,7 @@ namespace ServerLibrary.Repositories.Implementations
 
             //tekshirish create, and assign role
             var checkAdminRole = await appDbContext.SystemRoles.FirstOrDefaultAsync(_ => _.Name!.Equals(Constants.Admin));
-            if(checkAdminRole is null)
+            if (checkAdminRole is null)
             {
                 var createAdminRole = await AddToDatabase(new SystemRole()
                 {
@@ -84,15 +84,15 @@ namespace ServerLibrary.Repositories.Implementations
                 return new LoginResponse(false, "Model is empty || Model topilmadi");
             }
             var applicationUser = await FindUserByEmail(user.Email!);
-            if(applicationUser is null)
+            if (applicationUser is null)
             {
                 return new LoginResponse(false, "User not found || Foydalanuvchi topilmadi");
             }
             //Passwordni tekshirish
-            if(!BCrypt.Net.BCrypt.Verify(user.Password!, applicationUser.Password))
+            if (!BCrypt.Net.BCrypt.Verify(user.Password!, applicationUser.Password))
             {
                 return new LoginResponse(false, "Email/Password is incorrect || Email/Parol noto'g'ri");
-            }   
+            }
             var getUserRole = await FindUserRole(applicationUser.Id);
             if (getUserRole is null)
             {
@@ -105,6 +105,21 @@ namespace ServerLibrary.Repositories.Implementations
             }
             string jwtToken = GenerateToken(applicationUser, getRoleName!.Name!);
             string refreshToken = GenerateRefreshToken();
+            //saqlash refresh tokennni databasaga
+            var findUser = await appDbContext.RefreshTokenInfos.FirstOrDefaultAsync(_ => _.UserId == applicationUser.Id);
+            if (findUser is not null)
+            {
+                findUser!.Token = refreshToken;
+                await appDbContext.SaveChangesAsync();
+            }
+            else
+            {
+                await AddToDatabase(new RefreshTokenInfo()
+                {
+                    Token = refreshToken,
+                    UserId = applicationUser.Id
+                });
+            }
             return new LoginResponse(true, "Login successful || Kirish muvaffaqiyatli", jwtToken, refreshToken);
         }
 
@@ -145,18 +160,18 @@ namespace ServerLibrary.Repositories.Implementations
 
         public async Task<LoginResponse> RefreshTokenAsync(RefreshToken token)
         {
-            if(token is null)
+            if (token is null)
             {
                 return new LoginResponse(false, "Model is empty || Model bo'sh");
             }
             var findToken = await appDbContext.RefreshTokenInfos.FirstOrDefaultAsync(_ => _.Token!.Equals(token.Token));
-            if(findToken is null)
+            if (findToken is null)
             {
                 return new LoginResponse(false, "Refresh token is required  || Tokenni yangilash talab qilinadi");
             }
             //get user details
             var user = await appDbContext.ApplicationUsers.FirstOrDefaultAsync(_ => _.Id == findToken.UserId);
-            if(user is null)
+            if (user is null)
             {
                 return new LoginResponse(false, "Refresh token could not be generated because user not found || Yangilash tokenini yaratib boʻlmadi, chunki foydalanuvchi topilmadi");
             }
@@ -166,7 +181,7 @@ namespace ServerLibrary.Repositories.Implementations
             string refreshToken = GenerateRefreshToken();
 
             var updateRefreshToken = await appDbContext.RefreshTokenInfos.FirstOrDefaultAsync(_ => _.UserId == user.Id);
-            if(updateRefreshToken is null)
+            if (updateRefreshToken is null)
             {
                 return new LoginResponse(false, "Refresh token could not be generated because user has not signed in || Yangilash tokenini yaratib boʻlmadi, chunki foydalanuvchi tizimga kirmagan");
             }
