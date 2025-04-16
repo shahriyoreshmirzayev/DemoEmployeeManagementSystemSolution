@@ -54,7 +54,7 @@ namespace ServerLibrary.Repositories.Implementations
             {
                 response = await AddToDatabase(new SystemRole()
                 {
-                    Name = Constants.Admin,
+                    Name = Constants.User,
                 });
                 await AddToDatabase(new UserRole()
                 {
