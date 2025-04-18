@@ -18,16 +18,10 @@ namespace ServerLibrary.Repositories.Implementations
     {
         public async Task<GeneralResponse> CreateAsync(Register user)
         {
-            if (user is null)
-            {
-                return new GeneralResponse(false, "Model is empty");
-            }
+            if (user is null) return new GeneralResponse(false, "Model is empty");
 
             var checkUser = await FindUserByEmail(user.Email!);
-            if (checkUser != null)
-            {
-                return new GeneralResponse(false, "User registired already");
-            }
+            if (checkUser != null) return new GeneralResponse(false, "User registired already");
             // userni saqlash
             var applicationUser = await AddToDatabase(new ApplicationUser()
             {
@@ -35,76 +29,45 @@ namespace ServerLibrary.Repositories.Implementations
                 Email = user.Email,
                 Password = BCrypt.Net.BCrypt.HashPassword(user.Password)
             });
-
             //tekshirish create, and assign role
             var checkAdminRole = await appDbContext.SystemRoles.FirstOrDefaultAsync(_ => _.Name!.Equals(Constants.Admin));
             if (checkAdminRole is null)
             {
-                var createAdminRole = await AddToDatabase(new SystemRole()
-                {
-                    Name = Constants.Admin,
-                });
-                await AddToDatabase(new UserRole()
-                {
-                    RoleId = createAdminRole.Id,
-                    UserId = applicationUser.Id
-                });
+                var createAdminRole = await AddToDatabase(new SystemRole() { Name = Constants.Admin });
+                await AddToDatabase(new UserRole() { RoleId = createAdminRole.Id, UserId = applicationUser.Id });
                 return new GeneralResponse(true, "Account created || Akkaunt yaratildi");
             }
-
 
             var checkUserRole = await appDbContext.SystemRoles.FirstOrDefaultAsync(_ => _.Name!.Equals(Constants.User));
             SystemRole response = new();
             if (checkUserRole is null)
             {
-                response = await AddToDatabase(new SystemRole()
-                {
-                    Name = Constants.User,
-                });
-                await AddToDatabase(new UserRole()
-                {
-                    RoleId = response.Id,
-                    UserId = applicationUser.Id
-                });
+                response = await AddToDatabase(new SystemRole() { Name = Constants.User });
+                await AddToDatabase(new UserRole() { RoleId = response.Id, UserId = applicationUser.Id });
             }
             else
             {
-                await AddToDatabase(new UserRole()
-                {
-                    RoleId = checkUserRole.Id,
-                    UserId = applicationUser.Id
-                });
+                await AddToDatabase(new UserRole() { RoleId = checkUserRole.Id, UserId = applicationUser.Id });
             }
             return new GeneralResponse(true, "Account created || Akkaunt yaratildi");
         }
-        public async Task<LoginResponse> SigninAsync(Login user)
+        public async Task<LoginResponse> SignInAsync(Login user)
         {
-            if (user is null)
-            {
-                return new LoginResponse(false, "Model is empty || Model topilmadi");
-            }
+            if (user is null) return new LoginResponse(false, "Model is empty || Model topilmadi");
             var applicationUser = await FindUserByEmail(user.Email!);
-            if (applicationUser is null)
-            {
-                return new LoginResponse(false, "User not found || Foydalanuvchi topilmadi");
-            }
+            if (applicationUser is null) return new LoginResponse(false, "User not found || Foydalanuvchi topilmadi");
             //Passwordni tekshirish
-            if (!BCrypt.Net.BCrypt.Verify(user.Password!, applicationUser.Password))
-            {
-                return new LoginResponse(false, "Email/Password is incorrect || Email/Parol noto'g'ri");
-            }
+            if (!BCrypt.Net.BCrypt.Verify(user.Password, applicationUser.Password)) return new LoginResponse(false, "Email/Password is incorrect || Email/Parol noto'g'ri");
+            
             var getUserRole = await FindUserRole(applicationUser.Id);
-            if (getUserRole is null)
-            {
-                return new LoginResponse(false, "User role not found || Foydalanuvchi roli topilmadi");
-            }
+            if (getUserRole is null) return new LoginResponse(false, "User role not found || Foydalanuvchi roli topilmadi");
+            
             var getRoleName = await FindRoleName(getUserRole.RoleId);
-            if (getRoleName is null)
-            {
-                return new LoginResponse(false, "User role not found || Foydalanuvchi roli topilmadi");
-            }
+            if (getRoleName is null) return new LoginResponse(false, "User role not found || Foydalanuvchi roli topilmadi");
+
             string jwtToken = GenerateToken(applicationUser, getRoleName!.Name!);
             string refreshToken = GenerateRefreshToken();
+            
             //saqlash refresh tokennni databasaga
             var findUser = await appDbContext.RefreshTokenInfos.FirstOrDefaultAsync(_ => _.UserId == applicationUser.Id);
             if (findUser is not null)
@@ -114,18 +77,14 @@ namespace ServerLibrary.Repositories.Implementations
             }
             else
             {
-                await AddToDatabase(new RefreshTokenInfo()
-                {
-                    Token = refreshToken,
-                    UserId = applicationUser.Id
-                });
+                await AddToDatabase(new RefreshTokenInfo() { Token = refreshToken, UserId = applicationUser.Id });
             }
             return new LoginResponse(true, "Login successful || Kirish muvaffaqiyatli", jwtToken, refreshToken);
         }
 
         private string GenerateToken(ApplicationUser user, string role)
         {
-            var securtyKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config.Value.Key));
+            var securtyKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config.Value.Key!));
             var credentials = new SigningCredentials(securtyKey, SecurityAlgorithms.HmacSha256);
             var userClaims = new[]
             {
@@ -144,13 +103,13 @@ namespace ServerLibrary.Repositories.Implementations
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
         private async Task<UserRole> FindUserRole(int userId) => await appDbContext.UserRoles.FirstOrDefaultAsync(_ => _.UserId == userId);
-        private async Task<SystemRole> FindRoleName(int roleId) => await appDbContext.SystemRoles.FirstOrDefaultAsync(_ => _.Name!.Equals(roleId));
+        private async Task<SystemRole> FindRoleName(int roleId) => await appDbContext.SystemRoles.FirstOrDefaultAsync(_ => _.Id == roleId);
 
 
 
         private static string GenerateRefreshToken() => Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
-        private async Task<ApplicationUser?> FindUserByEmail(string email) =>
-            await appDbContext.ApplicationUsers.FirstOrDefaultAsync(_ => _.Email!.ToLower()!.Equals(email.ToLower()));
+        private async Task<ApplicationUser> FindUserByEmail(string email) =>
+            await appDbContext.ApplicationUsers.FirstOrDefaultAsync(_ => _.Email!.ToLower()!.Equals(email!.ToLower()));
         private async Task<T> AddToDatabase<T>(T model)
         {
             var result = appDbContext.Add(model!);
@@ -160,15 +119,9 @@ namespace ServerLibrary.Repositories.Implementations
 
         public async Task<LoginResponse> RefreshTokenAsync(RefreshToken token)
         {
-            if (token is null)
-            {
-                return new LoginResponse(false, "Model is empty || Model bo'sh");
-            }
+            if (token is null) return new LoginResponse(false, "Model is empty || Model bo'sh");
             var findToken = await appDbContext.RefreshTokenInfos.FirstOrDefaultAsync(_ => _.Token!.Equals(token.Token));
-            if (findToken is null)
-            {
-                return new LoginResponse(false, "Refresh token is required  || Tokenni yangilash talab qilinadi");
-            }
+            if (findToken is null) return new LoginResponse(false, "Refresh token is required  || Tokenni yangilash talab qilinadi");
             //get user details
             var user = await appDbContext.ApplicationUsers.FirstOrDefaultAsync(_ => _.Id == findToken.UserId);
             if (user is null)
@@ -177,14 +130,11 @@ namespace ServerLibrary.Repositories.Implementations
             }
             var userRole = await FindUserRole(user.Id);
             var roleName = await FindRoleName(userRole.RoleId);
-            string jwtToken = GenerateToken(user, roleName.Name);
+            string jwtToken = GenerateToken(user, roleName.Name!);
             string refreshToken = GenerateRefreshToken();
 
             var updateRefreshToken = await appDbContext.RefreshTokenInfos.FirstOrDefaultAsync(_ => _.UserId == user.Id);
-            if (updateRefreshToken is null)
-            {
-                return new LoginResponse(false, "Refresh token could not be generated because user has not signed in || Yangilash tokenini yaratib boʻlmadi, chunki foydalanuvchi tizimga kirmagan");
-            }
+            if (updateRefreshToken is null) return new LoginResponse(false, "Refresh token could not be generated because user has not signed in || Yangilash tokenini yaratib boʻlmadi, chunki foydalanuvchi tizimga kirmagan");
             updateRefreshToken.Token = refreshToken;
             await appDbContext.SaveChangesAsync();
             return new LoginResponse(true, "Token refreshed successfully||Token muvaffaqiyatli yangilandi", jwtToken, refreshToken);
