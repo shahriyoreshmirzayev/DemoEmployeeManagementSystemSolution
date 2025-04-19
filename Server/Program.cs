@@ -69,6 +69,7 @@ app.UseHttpsRedirection();
 app.UseCors("AllowBlazorWasm");
 app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
 
 app.Run();
