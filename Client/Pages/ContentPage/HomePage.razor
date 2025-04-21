@@ -1,6 +1,6 @@
 ﻿@page "/home/dashboard"
-
-<h1>HomePage</h1>
+@using Client.Pages.AdminstrationPage
+<TableBanner />
 
 @code 
 {
@@ -19,6 +19,5 @@
         {
             NavManager.NavigateTo("/identity/account/login");
         }
-        
     }
 }
