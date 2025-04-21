@@ -4,7 +4,7 @@
     {
         public Action? GeneralDepartmentAction { get; set; }
         public bool ShowGeneralDepartment { get; set; }
-        public void SetGeneralDepartmentClicked()
+        public void GeneralDepartmentClicked()
         {
             ResetAllDepartments();
             ShowGeneralDepartment = true;

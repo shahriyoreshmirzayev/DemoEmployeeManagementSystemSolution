@@ -11,7 +11,7 @@
                 </a>
                 <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
                     <span class="navbar-toggler-icon"></span>
-                </button>
+                </button> 
             </div>
         </div>
 
@@ -50,7 +50,7 @@
                     </NavLink>
                     <div class="nav-link p-2 text-white" style="margin-left:5rem; visibility: @DepartmentCssStyle">
                         <ul class="list-group">
-                            <li style="list-style:none" class="cursorStyle">
+                            <li style="list-style:none" class="cusorStyle">
                                 <a class="nav-link p-2" @onclick="GeneralDepartmentClicked">
                                     <div class="hstack text-wrap">
                                         <span class="bi bi-file-medical fs-5 text-center" aria-hidden="true" style="margin-top:-2rem"></span>
@@ -132,7 +132,7 @@
     }
     void GeneralDepartmentClicked()
     {
-        // departmentState.GeneralDepartmentClicked();
+        departmentState.GeneralDepartmentClicked();
     }
 }
 
