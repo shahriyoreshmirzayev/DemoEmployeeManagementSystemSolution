@@ -31,7 +31,7 @@ namespace ClientLibrary.Helpers
                 var deserializedToken = Serializations.DeserializeJsonString<UserSession>(stringToken);
                 if (deserializedToken is null) return result;
 
-
+                 
                 if (string.IsNullOrEmpty(token))
                 {
                     request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", deserializedToken.Token);
