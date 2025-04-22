@@ -53,15 +53,12 @@
         <div class="col-lg-4"></div>
     </div>
 </div>
-
-
 @code
 {
     public bool ShowLoadingButton { get; set; } = false;
     Login User = new();
 
-    [CascadingParameter]
-    public Task<AuthenticationState> AuthenticationState { get; set; }
+    [CascadingParameter] public Task<AuthenticationState> AuthenticationState { get; set; }
     protected async override Task OnInitializedAsync()
     {
         await CheckUserAuthentication();

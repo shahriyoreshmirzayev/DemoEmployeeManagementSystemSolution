@@ -3,7 +3,6 @@
 @using Syncfusion.Blazor.Popups
 @layout AuthenticationLayout
 @inject SfDialogService DialogService
-
 <div class="container">
     <div class="row">
         <div class="col-lg-4"></div>
@@ -68,8 +67,7 @@
 {
     public bool ShowLoadingButton { get; set; } = false;
     Register User = new();
-    [CascadingParameter]
-    public Task<AuthenticationState> AuthenticationState { get; set; }
+    [CascadingParameter] public Task<AuthenticationState> AuthenticationState { get; set; }
     protected async override Task OnInitializedAsync()
     {
         await CheckUserAuthentication();
@@ -81,12 +79,12 @@
         var result = await accountServices.CreateAsync(User);
         if (result.Flag)
         {
-            await DisplayDialog(result.Message, "Registration Success || Ro‘yxatdan o‘tish muvaffaqiyatli");
+            await DisplayDialog(result.Message, "Success || Muvaffaqiyatli");
             User = new();
         }
         else
         {
-            await DisplayDialog(result.Message, "Registration Failed !!! || Ro‘yxatdan o‘tish amalga oshmadi !!!");
+            await DisplayDialog(result.Message, "Failed !!! || Amalga oshmadi!!!");
         }
         ShowLoadingButton = false;  
     }
@@ -99,8 +97,6 @@
         var user = (await AuthenticationState).User;
         bool isUserAuthenticated = user.Identity!.IsAuthenticated;
         if (isUserAuthenticated)
-        {
             NavManager.NavigateTo("/home/dashboard");
-        }
     }
 }
