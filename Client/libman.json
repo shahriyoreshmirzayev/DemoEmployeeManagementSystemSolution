@@ -3,20 +3,15 @@
   "defaultProvider": "cdnjs",
   "libraries": [
     {
-      "library": "bootstrap-icons@1.11.3",
-      "destination": "wwwroot/bootstrap-icons/"
-    },
-    {
-      "library": "bootstrap@5.3.2",
-      "destination": "wwwroot/bootstrap/"
-    },
-    {
-      "library": "bootstrap@5.3.0",
-      "destination": "wwwroot/bootstrap/"
-    },
-    {
       "library": "bootstrap@5.3.3",
       "destination": "wwwroot/bootstrap/"
+    }
+
+    ,
+    {
+      "provider": "cdnjs",
+      "library": "bootstrap-icons@1.11.3",
+      "destination": "wwwroot/bootstrap-icons/"
     }
   ]
 }
