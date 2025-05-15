@@ -3376,7 +3376,13 @@ textarea.form-control-lg {
 .collapse:not(.show) {
   display: none;
 }
+.hide-menu {
+    display: none;
+}
 
+.show-menu {
+    display: block;
+}
 .collapsing {
   height: 0;
   overflow: hidden;
